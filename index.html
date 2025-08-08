@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ku" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>وەرگێرێ بادینی</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <style>
+        :root {
+            --primary-color: #3B82F6;
+            --dark-color: #1F2937;
+            --secondary-text-color: #6B7280;
+            --background-color: #F3F4F6;
+            --white-color: #ffffff;
+            --border-color: #E5E7EB;
+        }
+        body { margin: 0; font-family: 'Inter', sans-serif; background-color: var(--dark-color); }
+        .app-wrapper {
+            width: 100%;
+            max-width: 450px;
+            height: 100vh;
+            margin: 0 auto;
+            background-color: var(--background-color);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .app-header {
+            padding: 15px 20px;
+            text-align: center;
+            background-color: var(--white-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+        .app-header h1 { font-size: 20px; font-weight: 600; margin: 0; color: var(--dark-color); }
+        
+        .translation-container {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .text-panel {
+            background-color: var(--white-color);
+            border-radius: 12px;
+            padding: 15px;
+            min-height: 150px;
+            border: 1px solid var(--border-color);
+        }
+        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .language-name { font-size: 16px; font-weight: 500; color: var(--dark-color); }
+        .panel-icons .icon-btn { font-size: 20px; color: var(--secondary-text-color); cursor: pointer; background: none; border: none; }
+        textarea {
+            width: 100%;
+            border: none;
+            background: none;
+            resize: none;
+            font-family: 'Inter', sans-serif;
+            font-size: 22px;
+            outline: none;
+            color: var(--dark-color);
+            height: 120px;
+        }
+        #output-textarea { color: var(--primary-color); font-weight: 500; }
+        
+        .swap-container { display: flex; justify-content: center; padding: 15px 0; }
+        .swap-btn {
+            background-color: var(--white-color);
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+            font-size: 20px;
+            color: var(--primary-color);
+            transition: transform 0.3s;
+        }
+        .swap-btn:active { transform: rotate(180deg); }
+        
+        .bottom-toolbar {
+            background-color: var(--white-color);
+            border-top: 1px solid var(--border-color);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .translate-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 14px 0;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            width: 100%;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+            transition: background-color 0.2s;
+        }
+        .translate-btn:active { background-color: #2563EB; }
+
+    </style>
+</head>
+<body>
+    <div class="app-wrapper">
+        <header class="app-header"><h1>وەرگێرێ گشتی</h1></header>
+        
+        <main class="translation-container">
+            <!-- پەنێلا ژۆر (داخکرن) -->
+            <div class="text-panel" id="input-panel">
+                <div class="panel-header">
+                    <span class="language-name" id="nave-zimane-jori">ئینگلیزی</span>
+                    <div class="panel-icons">
+                        <button class="icon-btn" title="guhdarî bike"><i class='bx bx-volume-full'></i></button>
+                        <button class="icon-btn" title="kopî bike"><i class='bx bx-copy'></i></button>
+                    </div>
+                </div>
+                <textarea id="nivisina-jori" placeholder="لڤێرە بنڤیسە..."></textarea>
+            </div>
+            
+            <div class="swap-container">
+                <button class="swap-btn" id="dugma-guhartine" title="گوهارتنا زمانان"><i class='bx bx-transfer'></i></button>
+            </div>
+
+            <!-- پەنێلا ژێر (وەرگێران) -->
+            <div class="text-panel" id="output-panel">
+                <div class="panel-header">
+                    <span class="language-name" id="nave-zimane-jeri">بادینی</span>
+                    <div class="panel-icons">
+                         <button class="icon-btn" title="guhdarî bike"><i class='bx bx-volume-full'></i></button>
+                         <button class="icon-btn" title="kopî bike"><i class='bx bx-copy'></i></button>
+                    </div>
+                </div>
+                <textarea id="nivisina-jeri" readonly placeholder="وەرگێران..."></textarea>
+            </div>
+        </main>
+        
+        <footer class="bottom-toolbar">
+            <button class="translate-btn" id="dugma-wergerane">وەرگێڕان</button>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const ziman = {
+                "en": "ئینگلیزی", "ku": "بادینی", "ar": "عەرەبی", "de": "ئەلمانی"
+            };
+            
+            let zimaneJori = 'en';
+            let zimaneJeri = 'ku';
+
+            const naveZimaneJori = document.getElementById('nave-zimane-jori');
+            const naveZimaneJeri = document.getElementById('nave-zimane-jeri');
+            const dugmaGuhartine = document.getElementById('dugma-guhartine');
+            const dugmaWergerane = document.getElementById('dugma-wergerane');
+            const nivisinaJori = document.getElementById('nivisina-jori');
+            const nivisinaJeri = document.getElementById('nivisina-jeri');
+
+            function nuKirinUI() {
+                naveZimaneJori.textContent = ziman[zimaneJori];
+                naveZimaneJeri.textContent = ziman[zimaneJeri];
+            }
+
+            dugmaWergerane.addEventListener('click', async () => {
+    const nivis = nivisinaJori.value.trim();
+    if (!nivis) return;
+    
+    nivisinaJeri.value = "AI یا زیرەک ل سەر کارە...";
+    dugmaWergerane.disabled = true;
+
+    try {
+        // ل ڤێرێ ئەم داخوازێ بۆ سێرڤەرێ "پشت پەردێ" یێ خۆ فرێدکەین
+        const response = await fetch('https://ADRESA-SERVERE-TE.com/wergeran', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nivisToTranslate: nivis })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            // Em bersiva rastî ji AI werdigirin
+            nivisinaJeri.value = data.wergeran; 
+        } else {
+            nivisinaJeri.value = "خەلەتیەک د وەرگێرانێ دا چێبوو.";
+        }
+
+    } catch (error) {
+        nivisinaJeri.value = "خەلەتیەک د گرێدانێ دا چێبوو.";
+    } finally {
+        dugmaWergerane.disabled = false;
+    }
+});
+
+            // Destpêkirin
+            nuKirinUI();
+        });
+    </script>
+</body>
+</html>
